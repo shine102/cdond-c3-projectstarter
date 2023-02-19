@@ -108,7 +108,7 @@ jobs:
 
   deploy-infrastructure:
   docker:
-    - image: amazon/aws-cli:latest
+    - image: amazon/aws-cli
   steps:
     - checkout
     - restore_cache:
