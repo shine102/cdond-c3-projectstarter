@@ -111,11 +111,6 @@ jobs:
       - image: amazon/aws-cli:latest
     steps:
       - checkout
-      - run: 
-          name: Install tar and gzip
-          command: |
-            sudo apt-get update
-            sudo apt-get install tar gzip -y
       - run:
           name: Ensure back-end infrastructure exists
           command: |
