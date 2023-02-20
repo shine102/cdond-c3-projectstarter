@@ -150,7 +150,7 @@ jobs:
       - image: ansible/ansible:ubuntu1604
     steps:
       - checkout
-      - add-ssh-keys:
+      - add_ssh_keys:
           fingerprints:
             - "64:43:49:2e:32:13:ea:ca:f3:8c:eb:94:0a:47:b4:2b"
       - attach_workspace:
