@@ -13,6 +13,24 @@ commands:
           command: |
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      workflow_id:
+        type: string  
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS = $(curl "https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}")
+            if(( $SUCCESS==1 )); 
+              then
+              cd ~/project/backend
+              npm install
+              npm run migrate:revert
+            fi
 
 jobs:
   build-frontend:
@@ -169,9 +187,13 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
   run-migrations:
     docker:
-      - image: node:lts-alpine
+      - image: doctrine/nodejs-aws-cli:latest
     steps:
       - checkout
+      - run:
+          name: Install curl
+          command: |
+            apt-get install -y curl
       - run:
           name: Run migrations
           command: |
@@ -189,6 +211,37 @@ jobs:
               curl https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/migration_${CIRCLE_WORKFLOW_ID:0:7} \
               -d "0"
             fi
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+  deploy-frontend:
+    docker: 
+      - image: amazon/aws-cli:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - dependencies
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=$(aws cloudformation describe-stacks \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query "Stacks[0].Outputs[0].OutputValue" \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 workflows:
@@ -213,3 +266,5 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
