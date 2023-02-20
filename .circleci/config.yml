@@ -341,7 +341,7 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   cleanup:
     docker:
-      image: doctrine/nodejs-aws-cli:latest
+      - image: doctrine/nodejs-aws-cli:latest
     steps:
       - checkout
       - run:
