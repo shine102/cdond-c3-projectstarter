@@ -145,6 +145,26 @@ jobs:
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
 
+  configure-infrastructure:
+    docker:
+      - image: ansible/ansible:ubuntu1604
+    steps:
+      - checkout
+      - add-ssh-keys:
+          fingerprints:
+            - "64:43:49:2e:32:13:ea:ca:f3:8c:eb:94:0a:47:b4:2b"
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get install -y tar gzip awscli ansible
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+      
 workflows:
   default:
     jobs:
@@ -163,3 +183,5 @@ workflows:
           filters:
             branches:
               only: master
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
