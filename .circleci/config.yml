@@ -314,13 +314,11 @@ jobs:
               --query "Stacks[0].Outputs[0].OutputValue" \
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo ${API_URL}
-            curl "https://webhook.site/813d7f25-c10d-41ed-8a96-d13dd450b9f4"
             curl ${API_URL}/api/status | grep "ok" 
-      # - revert-migrations:
-      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      # - destroy-environment:
-      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   cloudfront-update:
     docker:
       - image: doctrine/nodejs-aws-cli:latest
@@ -358,9 +356,9 @@ jobs:
           command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              aws s3 rm "s3://${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "$STACKS[0]"
+              aws cloudformation delete-stack --stack-name "$STACKS[1]"
             fi
 workflows:
   default:
