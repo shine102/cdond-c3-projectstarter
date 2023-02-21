@@ -307,7 +307,8 @@ jobs:
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query "Stacks[0].Outputs[0].OutputValue" \
               --output text)
-            export API_URL="http://${BACKEND_IP}:3030"          
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"        
             curl -s ${API_URL}/api/status | grep "ok"
       - run:
           name: Frontend smoke test.
