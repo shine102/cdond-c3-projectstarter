@@ -303,6 +303,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
+            echo ${API_URL}            
             curl -s ${API_URL}/api/status | grep "ok"
       - run:
           name: Frontend smoke test.
