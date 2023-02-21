@@ -357,7 +357,7 @@ jobs:
       - run:
           name: Get old stack workflow id
           command: |
-            export OldWorkflowID=$(curl -s https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/bucket/)
+            export OldWorkflowID=$(curl -s https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/bucket)
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
             # Fetch the stack names          
@@ -369,10 +369,10 @@ jobs:
           command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
-              export OldWorkflowID=$(curl -s https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/bucket/)
-              aws s3 rm "s3://${OldWorkflowID}" --recursive
+              export OldWorkflowID=$(curl -s https://kvdb.io/Jceh2agBH5U5R7u6oKMpjb/bucket)
               aws cloudformation delete-stack --stack-name "${STACKS[-1]}"
               aws cloudformation delete-stack --stack-name "${STACKS[-2]}"
+              aws s3 rm "s3://${OldWorkflowID}" --recursive
             fi
 workflows:
   default:
@@ -406,3 +406,5 @@ workflows:
           requires: [smoke-test]
       - cleanup:
           requires: [cloudfront-update]
+
+tjbyxlszjhvmntih
